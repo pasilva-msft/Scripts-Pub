@@ -38,7 +38,7 @@ if ($OSCaption -like "*Windows 10*"){
         if ($DetectSMBStatus -eq "Enabled"){
         
         # Disable smbv1
-        Write-Output "SMBv1 enabled. Desabling SMBv1" | Out-File $OutputFile -Append
+        Write-Output "SMBv1 enabled. Disabling SMBv1" | Out-File $OutputFile -Append
         $disableSmbv1 = Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart
         $disabledStatus = ($disableSmbv1).RestartNeeded
             
