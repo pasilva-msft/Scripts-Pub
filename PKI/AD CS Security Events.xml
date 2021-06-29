@@ -1,0 +1,3 @@
+<ViewerConfig><QueryConfig><QueryParams><UserQuery /></QueryParams><QueryNode><Name>AD CS Security Events</Name><Description>All events based on Certification Services Task Category</Description><QueryList><Query Id="0" Path="Security"><Select Path="Security">
+                 *[System[Task='12805']]
+               </Select></Query></QueryList></QueryNode></QueryConfig></ViewerConfig>
