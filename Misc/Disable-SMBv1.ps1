@@ -14,7 +14,7 @@
 # attorneys'' fees, that arise or result from the use or distribution
 # of the Sample Code.
 #
-#   Author: Paulo da Silva (pasilva@microsoft.com)
+#   Author: Paulo da Silva
 #
 
 
