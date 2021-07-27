@@ -52,7 +52,7 @@ foreach ($site in $sites) {
         }
         else {
             foreach ($authstrs in $authstr) {
-                # Check if Kerberos is configured
+                # Check what providers are configured
                 if ($authstrs -eq "Negotiate:Kerberos") {
                     $Kerb = 1
                     Write-Host "Negotiate:Kerberos is already configured as authentication provider" -ForegroundColor Yellow
