@@ -74,7 +74,6 @@ foreach ($site in $sites) {
         Write-Host "Auth: " $auth.providers.collection.Value -ForegroundColor Green
     }
     else {
-        #Write-Host ""
         Write-Host "Doing nothing on site: $($site)" -ForegroundColor Cyan
     }
 }
