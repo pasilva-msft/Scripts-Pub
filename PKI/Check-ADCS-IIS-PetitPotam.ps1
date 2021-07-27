@@ -29,6 +29,10 @@ Import-Module WebAdministration
 $sites = (Get-ChildItem 'IIS:\Sites').collection.path
 $IISdir = "IIS:\Sites\Default Web Site"
 $Kerb = 0
+$NTLM = 0
+$Negotiate = 0
+$PKU2U = 0
+$CloudAP = 0
 
 Write-Host "Server name: $($env:COMPUTERNAME)" -ForegroundColor Yellow
 foreach ($site in $sites) {
@@ -49,24 +53,47 @@ foreach ($site in $sites) {
         else {
             foreach ($authstrs in $authstr) {
                 # Check if Kerberos is configured
-                if ($authstrs -match "Kerberos") {
+                if ($authstrs -eq "Negotiate:Kerberos") {
                     $Kerb = 1
                     Write-Host "Negotiate:Kerberos is already configured as authentication provider" -ForegroundColor Yellow
-                    Write-Host ""
+                }
+                if ($authstrs -eq "NTLM") {
+                    $NTLM = 1
+                }
+                if ($authstrs -eq "Negotiate") {
+                    $Negotiate = 1
+                }
+                if ($authstrs -eq "Negotiate:PKU2U") {
+                    $PKU2U = 1
+                }
+                if ($authstrs -eq "Negotiate:CloudAP") {
+                    $CloudAP = 1
                 }
             }
             # If Kerberos was not found on provider list, add Kerberos
             if ($Kerb -eq 0) {
-                Write-Host
                 Write-Host "Adding Negotiate:Kerberos provider" -ForegroundColor Yellow
                 Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
             }
+            if ($NTLM -eq 1) {
+                Write-Host "Removing NTLM provider" -ForegroundColor Yellow
+                Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'NTLM' }
+            }
+            if ($Negotiate -eq 1) {
+                Write-Host "Removing Negotiate provider" -ForegroundColor Yellow
+                Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate' }
+            }
+            if ($PKU2U -eq 1) {
+                Write-Host "Removing Negotiate:PKU2U provider" -ForegroundColor Yellow
+                Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:PKU2U' }
+            }
+            if ($CloudAP -eq 1) {
+                Write-Host "Removing Negotiate:CloudAP provider" -ForegroundColor Yellow
+                Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:CloudAP' }
+            }
         }
-        Write-Host "Removing all others providers" -ForegroundColor Yellow
-        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate' }
-        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'NTLM' }
-        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:PKU2U' }
-        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:CloudAP' }
+
+        # Checking providers after changing
         $auth = Get-WebConfiguration -filter /system.webServer/security/authentication/windowsAuthentication -PSPath "$IISdir\$($site)"
         Write-Host ""
         Write-Host "Authentication providers after change" -ForegroundColor Cyan
