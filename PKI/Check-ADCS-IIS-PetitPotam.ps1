@@ -17,7 +17,9 @@
 #   Author: Paulo da Silva
 #
 #   Script to configure IIS CES application (Certificate Enrollment Web Services)
-#   to use Negotiate:Kerberos and mitigate PetitPotam
+#   to use Negotiate:Kerberos and mitigate PetitPotam (Microsoft Security Advisory 974926)
+#
+#   https://support.microsoft.com/en-us/topic/kb5005413-mitigating-ntlm-relay-attacks-on-active-directory-certificate-services-ad-cs-3612b773-4043-4aa9-b23d-b87910cd3429
 #
 
 
