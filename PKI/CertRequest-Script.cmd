@@ -141,13 +141,13 @@ echo.
 echo Whish to create a new request? Ex: YES or NO
 set /p newreq=
 if /I %newreq% equ YES (
-	goto testemultiplos
+	goto multiplereqs
 ) Else (
 	goto nomorework
 )
 
-:testemultiplos
-echo use same data? Ex: YES or NO
+:multiplereqs
+echo Use same data? Ex: YES or NO
 set /p data=
 
 if /I %data% equ NO (
