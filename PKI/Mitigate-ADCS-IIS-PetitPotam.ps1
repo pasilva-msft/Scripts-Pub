@@ -25,6 +25,7 @@
 #   v1 - Change IIS CES application to Kerberos only provider
 #   v2 - Added new mitigations options for IIS CES application as suggested on above KB
 #        Also added the ability to execute remotely on multiple servers
+#   v3 - Added option to Check if PetitPotam mitigations are applied
 
 # Declare variables
 $ServerName = Get-Content C:\Temp\Servers.txt -ErrorAction SilentlyContinue #Change this
@@ -82,23 +83,23 @@ $SBEnableKerberosOnly = {
                     # If Kerberos was not found on provider list, add Kerberos
                     if ($Kerb -eq 0) {
                         Write-Host "Adding Negotiate:Kerberos provider" -ForegroundColor Yellow
-                        Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
+                        Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
                     }
                     if ($NTLM -eq 1) {
                         Write-Host "Removing NTLM provider" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'NTLM' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'NTLM' }
                     }
                     if ($Negotiate -eq 1) {
                         Write-Host "Removing Negotiate provider" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate' }
                     }
                     if ($PKU2U -eq 1) {
                         Write-Host "Removing Negotiate:PKU2U provider" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:PKU2U' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:PKU2U' }
                     }
                     if ($CloudAP -eq 1) {
                         Write-Host "Removing Negotiate:CloudAP provider" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty  -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:CloudAP' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:CloudAP' }
                     }
                 }
 
@@ -149,7 +150,7 @@ $SBEnableEPAOnly = {
                 }
                 else {
                     Write-Host "$CESConfigFolder\web.config.bkp backup file already exists" -ForegroundColor Yellow
-                    Write-Host "Replacing content on $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file"
+                    Write-Host "Replacing content on $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file" -ForegroundColor Yellow
                     (Get-Content $CESConfigFile) -replace $NoEPA, $EPA | Set-Content $CESConfigFile
                 }
                 
@@ -207,6 +208,117 @@ $SBRequireSSL = {
     RequireSSL
 }
 
+$SBCheckMitigations = {
+    function CheckMitigations () {
+        Import-Module IISAdministration
+        Import-Module WebAdministration
+        $sites = (Get-ChildItem 'IIS:\Sites').collection.path
+        $IISdir = "IIS:\Sites\Default Web Site"
+        $DefaultWebSite = "Default Web Site"
+
+        # Query IIS configuration
+        Write-Host "Server name: $($env:COMPUTERNAME)" -ForegroundColor Yellow
+        foreach ($site in $sites) {
+            $auth = Get-WebConfiguration -filter /system.webServer/security/authentication/windowsAuthentication -PSPath "$IISdir\$($site)"
+            Write-Host ""
+            Write-Host "Site name: $($site)" -ForegroundColor Green
+            Write-Host "Auth: " $auth.providers.collection.Value -ForegroundColor Green
+            Write-Host ""
+            $authstr = $auth.providers.collection.Value
+            # Add/Remove authentication providers
+            if ($site -match "CES_Kerberos") {
+                # Check if there are no providers configured
+                if ($null -eq $authstr) {
+                    Write-Host "No provider found" -ForegroundColor Red
+                    Write-Host ""
+                }
+                else {
+                    Write-Host "Checking what providers are configured..." -ForegroundColor Yellow
+                    Write-Host ""
+                    foreach ($authstrs in $authstr) {
+                        # Check what providers are configured
+                        if ($authstrs -eq "Negotiate:Kerberos") {
+                            Write-Host "Negotiate:Kerberos is already configured as authentication provider" -ForegroundColor Green
+                            Write-Host ""
+                        }
+                        if ($authstrs -eq "NTLM") {
+                            Write-Host "NTLM is configured as authentication provider" -ForegroundColor Red
+                            Write-Host ""
+                        }
+                        if ($authstrs -eq "Negotiate") {
+                            Write-Host "Negotiate is configured as authentication provider" -ForegroundColor Red
+                            Write-Host ""
+                        }
+                        if ($authstrs -eq "Negotiate:PKU2U") {
+                            Write-Host "Negotiate:PKU2U is configured as authentication provider" -ForegroundColor Red
+                            Write-Host ""
+                        }
+                        if ($authstrs -eq "Negotiate:CloudAP") {
+                            Write-Host "Negotiate:CloudAP is configured as authentication provider" -ForegroundColor Red
+                            Write-Host ""
+                        }
+                    }
+                }
+
+                # Checking for Extended Protection for Authentication (EPA) on web.config file
+                Write-Host "Checking if Extended Protection for Authentication (EPA) is Required on web.config file..." -ForegroundColor Yellow
+                Write-Host ""
+                $siteNormalized = $site.Split("/")[1]
+                $CESConfigFile = "$($env:windir)\systemdata\CES\$($siteNormalized)\web.config"
+                $CESWebConfig = Get-Content $CESConfigFile
+                $CheckEPA = '<extendedProtectionPolicy policyEnforcement="Always" />'
+                $CheckEPABool = $false
+                foreach ($line in $CESWebConfig) {
+                    if ($line -eq $CheckEPA) {
+                        Write-Host "Extended Protection for Authentication (EPA) is already configured on $($CESConfigFile) file" -ForegroundColor Green
+                        Write-Host ""
+                        $CheckEPABool = $true
+                    }
+                }
+                if ($CheckEPABool -eq $false) {
+                    Write-Host "Extended Protection for Authentication (EPA) is NOT configured on $($CESConfigFile) file" -ForegroundColor Red
+                    Write-Host ""
+                }
+
+                # Checking for Extended Protection for Authentication (EPA) on IIS CES application level
+                Write-Host "Checking if Extended Protection for Authentication (EPA) is Required on IIS CES application level..." -ForegroundColor Yellow
+                Write-Host ""
+                $TokenChecking = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking"
+                if ($TokenChecking -eq "Require") {
+                    Write-Host "Extended Protection for Authentication (EPA) is configured to: $($TokenChecking) for application $($site)" -ForegroundColor Green
+                    Write-Host ""
+                }
+                else {
+                    Write-Host "Extended Protection for Authentication (EPA) is NOT configured as recommended for application $($site)" -ForegroundColor Red
+                    Write-Host "Current configuration is: $($TokenChecking)" -ForegroundColor Red
+                    Write-Host ""
+                }
+
+                # Checking if SSL and SSL 128-bits are Required
+                Write-Host "Checking if SSL and SSL 128-bits are Required for $($site)" -ForegroundColor Yellow
+                Write-Host ""
+                $SSL = Get-WebConfiguration -PSPath "$IISdir\$($site)" -filter "system.webServer/security/access"
+                if ($SSL.sslFlags -eq "Ssl,Ssl128") {
+                    Write-Host "SSL and SSL 128-bits are Required for $($site) for CES IIS application" -ForegroundColor Green
+                    Write-Host ""
+                }
+                elseif ($null -eq $SSL.sslFlags -or $SSL.sslFlags -eq "") {
+                    Write-Host "SSL and SSL 128-bits are NOT Required for $($site)" -ForegroundColor Red
+                    Write-Host "Current SSL configuration is NULL for application $($site)" -ForegroundColor Red
+                    Write-Host ""
+                } else {
+                    Write-Host "SSL and SSL 128-bits are NOT Required for $($site)" -ForegroundColor Red
+                    Write-Host "Current SSL configuration is: $($SSL.sslFlags) for application $($site)" -ForegroundColor Red
+                    Write-Host ""
+                }
+            }
+        }
+        
+    }
+    # Calling function
+    CheckMitigations
+}
+
 $SBResetIIS = {
     function ResetIIS () {
         iisreset /restart
@@ -215,10 +327,12 @@ $SBResetIIS = {
     ResetIIS
 }
 
+# Function to check if Servers.txt file exist and not empty
 function CheckServerName ($ServerName) {
     if ($null -ne $ServerName) {
         Return $true
-    } else {
+    }
+    else {
         Return $false
     }
 }
@@ -267,7 +381,8 @@ switch ($op) {
                 }
 
             }
-        } else {
+        }
+        else {
             Write-Host "Servers file not found. A server list file must be provided" -ForegroundColor Red
         }
     }
@@ -294,7 +409,8 @@ switch ($op) {
                 }
 
             }
-        } else {
+        }
+        else {
             Write-Host "Servers file not found. A server list file must be provided" -ForegroundColor Red
         }
     }
@@ -321,13 +437,35 @@ switch ($op) {
                 }
 
             }
-        } else {
+        }
+        else {
             Write-Host "Servers file not found. A server list file must be provided" -ForegroundColor Red
         }
     }
 
     4 {
-        Write-Host "Sorry! Not implemented yet :)" -ForegroundColor Yellow
+        $CheckFile = CheckServerName $ServerName
+        if ($CheckFile) {
+            foreach ($server in $ServerName) {
+                Write-Host ""
+                Write-Host "Creating PSSession for: $($server)" -ForegroundColor Yellow
+                $session = New-PSSession -ComputerName $server -ErrorAction SilentlyContinue
+                if ($null -ne $session) {
+                    Invoke-Command -Session $session -ScriptBlock $SBCheckMitigations -ArgumentList $server
+                    Write-Host ""
+                    Write-Host "Removing PSSesion for: $($server)" -ForegroundColor Yellow
+                    Remove-PSSession $session
+                }
+                else {
+                    Write-Host ""
+                    Write-Host "Could not connect to server: $($server)" -ForegroundColor Red
+                }
+
+            }
+        }
+        else {
+            Write-Host "Servers file not found. A server list file must be provided" -ForegroundColor Red
+        }
     }
 
     5 {
