@@ -24,6 +24,7 @@
 #   History:
 #   v1 - Change IIS CES application to Kerberos only provider
 #   v2 - Added new mitigations options for IIS CES application as suggested on above KB
+#        Also added the ability to execute remotely on multiple servers
 
 # Declare variables
 $ServerName = Get-Content C:\Temp\Servers.txt -ErrorAction SilentlyContinue #Change this
@@ -57,7 +58,6 @@ $SBEnableKerberosOnly = {
                     Write-Host "No provider found" -ForegroundColor Red
                     Write-Host "Adding Negotiate:Kerberos provider" -ForegroundColor Yellow
                     Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
-    
                 }
                 else {
                     foreach ($authstrs in $authstr) {
@@ -118,17 +118,13 @@ $SBEnableKerberosOnly = {
     EnableKerberosOnly
 }
 
-
 $SBEnableEPAOnly = {
     function EnableEPAOnly () {
         # Declare variables
         Import-Module IISAdministration
         Import-Module WebAdministration
         $sites = (Get-ChildItem 'IIS:\Sites').collection.path
-        $IISdir = "IIS:\Sites\Default Web Site"
         $DefaultWebSite = "Default Web Site"
-
-
         $NoEPA = @"
 <transport clientCredentialType="Windows" />
 "@
@@ -178,7 +174,6 @@ $SBRequireSSL = {
         Import-Module IISAdministration
         Import-Module WebAdministration
         $sites = (Get-ChildItem 'IIS:\Sites').collection.path
-        $IISdir = "IIS:\Sites\Default Web Site"
         $DefaultWebSite = "Default Web Site"
 
         Write-Host "Server name: $($env:COMPUTERNAME)" -ForegroundColor Yellow
@@ -188,7 +183,7 @@ $SBRequireSSL = {
                 Write-Host "Checking if SSL and SSL 128-bits are Required for $($site)" -ForegroundColor Yellow
                 $SSLRequired = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/access" -name "sslFlags"
                 if ($SSLRequired -eq "Ssl,Ssl128") {
-                    Write-Host "SSL and SSL 128-bits are Required for $($site)" -ForegroundColor Green
+                    Write-Host "SSL and SSL 128-bits are Required for $($site) for CES IIS application" -ForegroundColor Green
                 }
                 else {
                     Write-Host "SSL and SSL 128-bits are NOT Required for $($site)" -ForegroundColor Red
