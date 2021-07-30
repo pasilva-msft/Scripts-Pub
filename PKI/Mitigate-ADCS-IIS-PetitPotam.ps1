@@ -141,10 +141,17 @@ $SBEnableEPAOnly = {
                 $CESConfigFolder = "$($env:windir)\systemdata\CES\$($siteNormalized)"
                 $CESConfigFile = "$($env:windir)\systemdata\CES\$($siteNormalized)\web.config"
 
-                Write-Host "Backing up original web.config file on $($CESConfigFolder) folder" -ForegroundColor Yellow
-                Copy-Item $CESConfigFile $CESConfigFolder\web.config.bkp -Force
-                Write-Host "Replacing content on $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file"
-                (Get-Content $CESConfigFile) -replace $NoEPA, $EPA | Set-Content $CESConfigFile
+                if (-not(Test-Path -Path $CESConfigFolder\web.config.bkp)) {
+                    Write-Host "Backing up original web.config file on $($CESConfigFolder) folder" -ForegroundColor Yellow
+                    Copy-Item $CESConfigFile $CESConfigFolder\web.config.bkp
+                    Write-Host "Replacing content on $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file"
+                    (Get-Content $CESConfigFile) -replace $NoEPA, $EPA | Set-Content $CESConfigFile
+                }
+                else {
+                    Write-Host "$CESConfigFolder\web.config.bkp backup file already exists" -ForegroundColor Yellow
+                    Write-Host "Replacing content on $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file"
+                    (Get-Content $CESConfigFile) -replace $NoEPA, $EPA | Set-Content $CESConfigFile
+                }
                 
                 # Check current EPA configuration
                 $TokenChecking = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking"
