@@ -269,7 +269,7 @@ $SBCheckMitigations = {
                 $CheckEPA = '<extendedProtectionPolicy policyEnforcement="Always" />'
                 $CheckEPABool = $false
                 foreach ($line in $CESWebConfig) {
-                    if ($line -eq $CheckEPA) {
+                    if ($line.Trim() -eq $CheckEPA) {
                         Write-Host "Extended Protection for Authentication (EPA) is already configured on $($CESConfigFile) file" -ForegroundColor Green
                         Write-Host ""
                         $CheckEPABool = $true
