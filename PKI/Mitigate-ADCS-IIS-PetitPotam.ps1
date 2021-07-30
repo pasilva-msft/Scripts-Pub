@@ -145,12 +145,12 @@ $SBEnableEPAOnly = {
                 if (-not(Test-Path -Path $CESConfigFolder\web.config.bkp)) {
                     Write-Host "Backing up original web.config file on $($CESConfigFolder) folder" -ForegroundColor Yellow
                     Copy-Item $CESConfigFile $CESConfigFolder\web.config.bkp
-                    Write-Host "Replacing content on $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file"
+                    Write-Host "Enabling Extended Protection for Authentication (EPA) on WCF $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file" -ForegroundColor Yellow
                     (Get-Content $CESConfigFile) -replace $NoEPA, $EPA | Set-Content $CESConfigFile
                 }
                 else {
                     Write-Host "$CESConfigFolder\web.config.bkp backup file already exists" -ForegroundColor Yellow
-                    Write-Host "Replacing content on $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file" -ForegroundColor Yellow
+                    Write-Host "Enabling Extended Protection for Authentication (EPA) on WCF $($env:windir)\systemdata\CES\$($siteNormalized)\web.config file" -ForegroundColor Yellow
                     (Get-Content $CESConfigFile) -replace $NoEPA, $EPA | Set-Content $CESConfigFile
                 }
                 
@@ -260,8 +260,8 @@ $SBCheckMitigations = {
                     }
                 }
 
-                # Checking for Extended Protection for Authentication (EPA) on web.config file
-                Write-Host "Checking if Extended Protection for Authentication (EPA) is Required on web.config file..." -ForegroundColor Yellow
+                # Checking for Extended Protection for Authentication (EPA) on WCF web.config file
+                Write-Host "Checking if Extended Protection for Authentication (EPA) is Required on WCF web.config file..." -ForegroundColor Yellow
                 Write-Host ""
                 $siteNormalized = $site.Split("/")[1]
                 $CESConfigFile = "$($env:windir)\systemdata\CES\$($siteNormalized)\web.config"
