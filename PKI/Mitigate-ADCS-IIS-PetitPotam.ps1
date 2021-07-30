@@ -231,6 +231,13 @@ $op = Read-Host "Choose your option above"
 Write-Host ""
 
 switch ($op) {
+    0 {
+        Write-Host "Exiting script..."
+        Write-Host ""
+        Start-Sleep 2
+        Break;
+    }
+
     1 {  
         $CheckFile = CheckServerName $ServerName
         if ($CheckFile) {
