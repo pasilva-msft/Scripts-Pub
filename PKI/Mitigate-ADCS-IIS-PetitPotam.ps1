@@ -447,26 +447,6 @@ $SBCheckMitigations = {
                     }
                 }
 
-              <#  # Checking for Extended Protection for Authentication (EPA) on WCF web.config file
-                Write-Host "Checking if Extended Protection for Authentication (EPA) is Required on WCF web.config file..." -ForegroundColor Yellow
-                Write-Host ""
-                $siteNormalized = $site.Split("/")[1]
-                $CESConfigFile = "$($env:windir)\systemdata\CES\$($siteNormalized)\web.config"
-                $CESWebConfig = Get-Content $CESConfigFile
-                $CheckEPA = '<extendedProtectionPolicy policyEnforcement="Always" />'
-                $CheckEPABool = $false
-                foreach ($line in $CESWebConfig) {
-                    if ($line.Trim() -eq $CheckEPA) {
-                        Write-Host "Extended Protection for Authentication (EPA) is already configured on $($CESConfigFile) file" -ForegroundColor Green
-                        Write-Host ""
-                        $CheckEPABool = $true
-                    }
-                }
-                if ($CheckEPABool -eq $false) {
-                    Write-Host "Extended Protection for Authentication (EPA) is NOT configured on $($CESConfigFile) file" -ForegroundColor Red
-                    Write-Host ""
-                }#>
-
                 # Checking for Extended Protection for Authentication (EPA) on IIS CES application level
                 Write-Host "Checking if Extended Protection for Authentication (EPA) is Required on IIS $($site) application level..." -ForegroundColor Yellow
                 Write-Host ""
