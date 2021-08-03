@@ -16,7 +16,7 @@
 #
 #   Author: Paulo da Silva
 #
-#   Script to check and mitigate PetitPotam attacks (Microsoft Security Advisory 974926)
+#   Script to check and mitigate PetitPotam attacks for Active Directory Certificate services (Microsoft Security Advisory 974926)
 #
 #   https://support.microsoft.com/en-us/topic/kb5005413-mitigating-ntlm-relay-attacks-on-active-directory-certificate-services-ad-cs-3612b773-4043-4aa9-b23d-b87910cd3429
 #
@@ -637,7 +637,35 @@ switch ($op) {
     }
 
     5 {
-        Write-Host "Sorry! Not implemented yet :)" -ForegroundColor Yellow
+        $CheckFile = CheckServerName $ServerName
+        if ($CheckFile) {
+            foreach ($server in $ServerName) {
+                Write-Host ""
+                Write-Host "Creating PSSession for: $($server)" -ForegroundColor Yellow
+                $session = New-PSSession -ComputerName $server -ErrorAction SilentlyContinue
+                if ($null -ne $session) {
+                    Invoke-Command -Session $session -ScriptBlock $SBEnableKerberosOnly -ArgumentList $server
+                    Write-Host ""
+                    Invoke-Command -Session $session -ScriptBlock $SBEnableEPAOnly -ArgumentList $server
+                    Write-Host ""
+                    Invoke-Command -Session $session -ScriptBlock $SBRequireSSL -ArgumentList $server
+                    Write-Host ""
+                    Write-Host "Restarting IIS services..." -ForegroundColor Yellow
+                    Invoke-Command -Session $session -ScriptBlock $SBResetIIS -ArgumentList $server
+                    Write-Host ""
+                    Write-Host "Removing PSSesion for: $($server)" -ForegroundColor Yellow
+                    Remove-PSSession $session
+                }
+                else {
+                    Write-Host ""
+                    Write-Host "Could not connect to server: $($server)" -ForegroundColor Red
+                }
+
+            }
+        }
+        else {
+            Write-Host "Servers file not found. A server list file must be provided" -ForegroundColor Red
+        }
     }
 
     Default {
