@@ -26,6 +26,7 @@
 #        Also added the ability to execute remotely on multiple servers
 #   v3 - Added option to Check if PetitPotam mitigations are applied
 #   v4 - Added mitigations to be applied on CAWE (Certification Authority Web Enrollment) aka /CertSrv
+#   v5 - Added option to apply all mitigations at once
 
 # Declare variables
 $ServerName = Get-Content C:\Temp\Servers.txt -ErrorAction SilentlyContinue #Change this with the server list you want, one server name per line
