@@ -1,18 +1,18 @@
-# This Sample Code is provided for the purpose of illustration only
-# and is not intended to be used in a production environment.  THIS
-# SAMPLE CODE AND ANY RELATED INFORMATION ARE PROVIDED "AS IS" WITHOUT
-# WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
-# LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS
-# FOR A PARTICULAR PURPOSE.  We grant You a nonexclusive, royalty-free
-# right to use and modify the Sample Code and to reproduce and distribute
-# the object code form of the Sample Code, provided that You agree:
-# (i) to not use Our name, logo, or trademarks to market Your software
-# product in which the Sample Code is embedded; (ii) to include a valid
-# copyright notice on Your software product in which the Sample Code is
-# embedded; and (iii) to indemnify, hold harmless, and defend Us and
-# Our suppliers from and against any claims or lawsuits, including
-# attorneys'' fees, that arise or result from the use or distribution
-# of the Sample Code.
+#   This Sample Code is provided for the purpose of illustration only
+#   and is not intended to be used in a production environment.  THIS
+#   SAMPLE CODE AND ANY RELATED INFORMATION ARE PROVIDED "AS IS" WITHOUT
+#   WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
+#   LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS
+#   FOR A PARTICULAR PURPOSE.  We grant You a nonexclusive, royalty-free
+#   right to use and modify the Sample Code and to reproduce and distribute
+#   the object code form of the Sample Code, provided that You agree:
+#   (i) to not use Our name, logo, or trademarks to market Your software
+#   product in which the Sample Code is embedded; (ii) to include a valid
+#   copyright notice on Your software product in which the Sample Code is
+#   embedded; and (iii) to indemnify, hold harmless, and defend Us and
+#   Our suppliers from and against any claims or lawsuits, including
+#   attorneys'' fees, that arise or result from the use or distribution
+#   of the Sample Code.
 #
 #   Author: Paulo da Silva
 #
@@ -27,6 +27,7 @@
 #   v3 - Added option to Check if PetitPotam mitigations are applied
 #   v4 - Added mitigations to be applied on CAWE (Certification Authority Web Enrollment) aka /CertSrv
 #   v5 - Added option to apply all mitigations at once
+#   v5.1 - Fixed error when changing Authentication providers and enabling EPA on /CertSrv
 
 # Declare variables
 $ServerName = Get-Content C:\Temp\Servers.txt -ErrorAction SilentlyContinue #Change this with the server list you want, one server name per line
@@ -122,7 +123,7 @@ $SBEnableKerberosOnly = {
                 if ($null -eq $authstr) {
                     Write-Host "No provider found on site: $($site)" -ForegroundColor Red
                     Write-Host "Adding Negotiate:Kerberos provider" -ForegroundColor Yellow
-                    Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
+                    Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
                 }
                 else {
                     foreach ($authstrs in $authstr) {
@@ -147,23 +148,23 @@ $SBEnableKerberosOnly = {
                     # If Kerberos was not found on provider list, add Kerberos
                     if ($Kerb -eq 0) {
                         Write-Host "Adding Negotiate:Kerberos provider for site $($site)" -ForegroundColor Yellow
-                        Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
+                        Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -value @{value = 'Negotiate:Kerberos' }
                     }
                     if ($NTLM -eq 1) {
                         Write-Host "Removing NTLM provider for site $($site)" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'NTLM' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'NTLM' }
                     }
                     if ($Negotiate -eq 1) {
                         Write-Host "Removing Negotiate provider for site $($site)" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate' }
                     }
                     if ($PKU2U -eq 1) {
                         Write-Host "Removing Negotiate:PKU2U provider for site $($site)" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:PKU2U' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:PKU2U' }
                     }
                     if ($CloudAP -eq 1) {
                         Write-Host "Removing Negotiate:CloudAP provider for site $($site)" -ForegroundColor Yellow
-                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:CloudAP' }
+                        Remove-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/providers" -name "." -AtElement @{value = 'Negotiate:CloudAP' }
                     }
                 }
                 
@@ -239,7 +240,7 @@ $SBEnableEPAOnly = {
         # Check for CertSrv IIS application
         if ($site -eq "/CertSrv") {
             # Check current EPA configuration
-            $TokenChecking = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking"
+            $TokenChecking = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking"
             if ($TokenChecking -eq "Require") {
                 Write-Host "Extended Protection for Authentication (EPA) is already configured to: $($TokenChecking) for application $($site)" -ForegroundColor Green
             }
@@ -247,9 +248,9 @@ $SBEnableEPAOnly = {
                 Write-Host "Extended Protection for Authentication (EPA) is configured for: $($TokenChecking) for application $($site)" -ForegroundColor Yellow
                 Write-Host "Going to change to Require" -ForegroundColor Green
                 # Configure Extended Protection to required
-                Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST/Default Web Site' -location $site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking" -value "Require"
+                Set-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking" -value "Require"
                 # Get current Extended Protection configuration
-                $TokenChecking = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite/$site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking"
+                $TokenChecking = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -location $DefaultWebSite$site -filter "system.webServer/security/authentication/windowsAuthentication/extendedProtection" -name "tokenChecking"
                 Write-Host "Extended Protection for Authentication (EPA) is now configured for: $($TokenChecking) for application $($site)" -ForegroundColor Green
             }
         }
@@ -513,7 +514,7 @@ Write-Host "1: Enable Kerberos authentication provider for CES and CertSrv appli
 Write-Host "2: Enable Extended Protection for Authentication (EPA) for CES and CertSrv applications" -ForegroundColor Green
 Write-Host "3: Require TLS for CES and CertSrv applications" -ForegroundColor Green
 Write-Host "4: Check if PetitPotam mitigations are applied for CES and CertSrv applications" -ForegroundColor Green
-Write-Host "5: Apply Kerberos, EPA and Require TLS mitigations for CES and CertSrv applications" -ForegroundColor Green
+Write-Host "5: Apply ALL mitigations (Kerberos, EPA and Require TLS) for CES and CertSrv applications" -ForegroundColor Green
 Write-Host "0: Exit script" -ForegroundColor Green
 Write-Host ""
 
