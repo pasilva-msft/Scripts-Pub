@@ -18,6 +18,8 @@
 #
 #   Script to search for specified user certificate in one or all Certificate Authorities
 #
+#   Note: Replace Servers and CAs names below accordingly
+#
 #   History:
 #   v1 - Initial version
 #   v2 - Added parameters validation
