@@ -41,11 +41,14 @@ echo.
 
 if not "%SANEQUCN%" == "" set SANEQUCN=
 if not "%SAN%" == "" set SAN=
+set CryptoProvider=Microsoft Software Key Storage Provider
 
 :createrequest
 
 rem ** Collect data to create CSR (Certificate Signing Request)
-echo Type Common Name for this request. Ex: SERVER.CONTOSO.COM or *.contoso.com
+echo Type Common Name for this request. Ex: SERVER.CONTOSO.COM
+echo Do not use wildcard on CommonName (Ex: *.contoso.com)
+echo Use wildcard on SAN (Subject Alternative Name)
 set /p CommonName=
 
 set SANEQUCN=%CommonName%
@@ -64,6 +67,18 @@ set /p SAN=
 
 echo Will private key be exportable? Ex: TRUE or FALSE
 set /p ExportableKey=
+
+echo Which Crypto Provider to use? KSP (CNG) or CSP (Legacy Provider)? Options: KSP or CSP
+set /p CryptoProvider=
+
+if /I %CryptoProvider% equ KSP (
+	set CryptoProviderINF=Microsoft Software Key Storage Provider
+)
+
+if /I %CryptoProvider% equ CSP (
+	set CryptoProviderINF=Microsoft RSA SChannel Cryptographic Provider
+	rem set ProviderType= 12
+)
 
 REM echo Will CSR send to internal Certification Authority? (YES or NO)
 REM set /p UseCertTmplt=
@@ -85,7 +100,7 @@ echo Signature="$Windows NT$" >> %requestINF%
 
 echo.  >> %requestINF%
 echo [NewRequest]  >> %requestINF%
-echo Subject = "CN=%CommonName%,OU = PKI,O = Contoso,L = Manaus,S = Amazonas,C = BR"    ; For a wildcard use "CN=*.CONTOSO.COM" for example  >> %requestINF%
+echo Subject = "CN=%CommonName%,O = Contoso,L = Manaus,S = Amazonas,C = BR"    ; For a wildcard use "CN=*.CONTOSO.COM" for example  >> %requestINF%
 rem ; For an empty subject use the following line instead or remove the Subject line entierely 
 rem ; Subject = 
 echo Exportable = %ExportableKey%                   ; Possible values: TRUE or FALSE >> %requestINF%
@@ -93,12 +108,12 @@ echo KeyLength = 2048                    ; Common key sizes: 512, 1024, 2048, 40
 echo KeySpec = 1                         ; AT_KEYEXCHANGE >> %requestINF%
 echo KeyUsage = 0xA0                     ; Digital Signature, Key Encipherment >> %requestINF%
 echo MachineKeySet = True                ; The key belongs to the local computer account >> %requestINF%
-echo ProviderName = "Microsoft RSA SChannel Cryptographic Provider" >> %requestINF%
+echo ProviderName = %CryptoProviderINF% >> %requestINF%
 echo KeyAlgorithm = RSA >> %requestINF%
-echo ProviderType = 12 >> %requestINF%
+rem echo ProviderType = %ProviderType% >> %requestINF%
 echo SMIME = FALSE >> %requestINF%
 echo RequestType = PKCS10 >> %requestINF%
-echo HashAlgorithm = sha1 >> %requestINF%
+echo HashAlgorithm = Sha256 >> %requestINF%
 echo.  >> %requestINF%
 rem ; At least certreq.exe shipping with Windows Vista/Server 2008 is required to interpret the [Strings] and [Extensions] sections below
 
@@ -177,4 +192,4 @@ goto createnewreq
 
 :nomorework
 REM clean up
-if exist %temp%\requestINF.inf del %temp%\requestINF.inf /q
+rem if exist %temp%\requestINF.inf del %temp%\requestINF.inf /q
