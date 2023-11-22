@@ -192,4 +192,4 @@ goto createnewreq
 
 :nomorework
 REM clean up
-rem if exist %temp%\requestINF.inf del %temp%\requestINF.inf /q
+if exist %temp%\requestINF.inf del %temp%\requestINF.inf /q
