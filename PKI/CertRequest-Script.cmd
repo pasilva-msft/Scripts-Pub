@@ -150,6 +150,10 @@ Set randomnumber=%random%
 
 certreq -new %requestINF% %user-path%\Request_%CommonName%_%randomnumber%.csr
 echo Request (CSR) created successfully on folder %user-path%\Request_%CommonName%_%randomnumber%.csr
+echo.
+echo Base64-encoded request
+echo.
+type %user-path%\Request_%CommonName%_%randomnumber%.csr
 
 :createnewreq
 echo.
