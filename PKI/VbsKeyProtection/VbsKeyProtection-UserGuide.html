@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VbsKeyProtection.ps1 — Usage Guide</title>
+<style>
+  :root {
+    --bg:#1e1e1e; --text:#d4d4d4; --container-bg:transparent; --container-shadow:none;
+    --h1:#569cd6; --h1-border:#569cd6; --h2:#4ec9b0; --h2-border:#3c3c3c; --h3:#dcdcaa; --h4:#9cdcfe;
+    --meta:#808080;
+    --section-bg:#252526; --section-border:#569cd6;
+    --warn-border:#ce9178; --warn-bg:#2d2820;
+    --note-border:#4ec9b0; --note-bg:#252526;
+    --accent-border:#c586c0; --accent-bg:#2d2035;
+    --code-bg:#1e1e1e; --code-text:#ce9178;
+    --pre-bg:#1a1a1a; --pre-border:#3c3c3c; --pre-text:#d4d4d4;
+    --th-bg:#2d2d30; --th-text:#569cd6; --td-bg:#1e1e1e; --cell-border:#3c3c3c;
+    --toc-bg:#252526; --link:#569cd6;
+    --cmt:#6a9955;
+    --btn-bg:#252526; --btn-text:#d4d4d4; --btn-border:#569cd6;
+  }
+  html[data-theme="light"] {
+    --bg:#f4f6f8; --text:#1a1a1a; --container-bg:#ffffff; --container-shadow:0 2px 12px rgba(0,0,0,0.08);
+    --h1:#0b5394; --h1-border:#0b5394; --h2:#1155a3; --h2-border:#cfd8dc; --h3:#8a6d00; --h4:#1155a3;
+    --meta:#666666;
+    --section-bg:#f7f9fb; --section-border:#0b5394;
+    --warn-border:#f9a825; --warn-bg:#fff8e1;
+    --note-border:#2e7d32; --note-bg:#f0f7ff;
+    --accent-border:#8e24aa; --accent-bg:#f6eefb;
+    --code-bg:#eef1f4; --code-text:#c7254e;
+    --pre-bg:#f5f7f9; --pre-border:#cfd8dc; --pre-text:#1a1a1a;
+    --th-bg:#e8eef4; --th-text:#0b5394; --td-bg:#ffffff; --cell-border:#cfd8dc;
+    --toc-bg:#f0f7ff; --link:#0b5394;
+    --cmt:#2e7d32;
+    --btn-bg:#ffffff; --btn-text:#1a1a1a; --btn-border:#0b5394;
+  }
+  body { font-family:'Segoe UI',Tahoma,sans-serif; margin:0; padding:24px; background:var(--bg); color:var(--text); line-height:1.6; transition:background .2s,color .2s; }
+  .container { max-width:1100px; margin:0 auto; background:var(--container-bg); box-shadow:var(--container-shadow); border-radius:10px; padding:24px 32px; }
+  h1 { color:var(--h1); border-bottom:2px solid var(--h1-border); padding-bottom:10px; margin-top:0; }
+  h2 { color:var(--h2); margin-top:34px; border-bottom:1px solid var(--h2-border); padding-bottom:6px; }
+  h3 { color:var(--h3); margin-bottom:4px; }
+  h4 { color:var(--h4); }
+  .meta { color:var(--meta); font-size:0.9em; margin-bottom:20px; }
+  .section { background:var(--section-bg); border-radius:8px; padding:16px 20px; margin:14px 0; border-left:4px solid var(--section-border); }
+  .warn { border-left-color:var(--warn-border); background:var(--warn-bg); }
+  .note { border-left-color:var(--note-border); background:var(--note-bg); }
+  .accent { border-left-color:var(--accent-border); background:var(--accent-bg); }
+  code { background:var(--code-bg); padding:2px 6px; border-radius:3px; font-family:'Cascadia Code',Consolas,monospace; color:var(--code-text); }
+  pre { background:var(--pre-bg); padding:14px; border-radius:6px; overflow-x:auto; border:1px solid var(--pre-border); }
+  pre code { padding:0; background:none; color:var(--pre-text); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; }
+  th,td { border:1px solid var(--cell-border); padding:8px 11px; text-align:left; vertical-align:top; }
+  th { background:var(--th-bg); color:var(--th-text); }
+  td { background:var(--td-bg); }
+  .cmt { color:var(--cmt); }
+  .toc { background:var(--toc-bg); padding:16px 20px; border-radius:8px; margin:18px 0; }
+  a, .toc a { color:var(--link); text-decoration:none; }
+  a:hover, .toc a:hover { text-decoration:underline; }
+  .toc ol { margin:6px 0; } ul li, ol li { margin:5px 0; }
+  #themeToggle { position:fixed; top:16px; right:16px; z-index:1000; background:var(--btn-bg); color:var(--btn-text); border:1px solid var(--btn-border); border-radius:20px; padding:8px 14px; font-size:0.85em; cursor:pointer; font-family:'Segoe UI',sans-serif; box-shadow:0 1px 4px rgba(0,0,0,0.25); }
+  #themeToggle:hover { opacity:0.85; }
+</style>
+</head>
+<body>
+<button id="themeToggle" onclick="toggleTheme()">☀️ Light mode</button>
+<div class="container">
+
+<h1>&#128273; VbsKeyProtection.ps1 — Usage Guide</h1>
+<div class="meta">
+  <strong>Script:</strong> VbsKeyProtection.ps1 &nbsp;|&nbsp;
+  <strong>Functions:</strong> 13 &nbsp;|&nbsp; <strong>Version:</strong> 1.0.0 &nbsp;|&nbsp;
+  <strong>Platform:</strong> Windows 11 / Server 2025 (build &#8805; 26052) with VBS running; Windows PowerShell 5.1 or PowerShell 7+<br>
+  <strong>Author:</strong> Paulo da Silva &nbsp;|&nbsp;
+  <strong>License:</strong> MIT &nbsp;|&nbsp;
+  <strong>Release:</strong> 1.0.0
+</div>
+
+<div class="section note">
+<strong>What is this?</strong> A reusable PowerShell module for the full lifecycle of <strong>VBS</strong> (VBS key protection) CNG keys and the certificates that use them. VBS keys are generated in the <em>Microsoft Software Key Storage Provider</em> with the CNG virtual-isolation flag, so the private key lives inside the VBS secure world (VTL1) &mdash; <strong>non-exportable</strong> and <strong>device-bound</strong>, resistant to admin/SYSTEM key theft.
+</div>
+
+<div class="toc">
+<strong>Contents</strong>
+<ol>
+  <li><a href="#prereq">Prerequisites</a></li>
+  <li><a href="#load">Loading the module</a></li>
+  <li><a href="#quick">Quick start (full lifecycle)</a></li>
+  <li><a href="#fn-ready">Test-VbsKeyReady</a></li>
+  <li><a href="#fn-new">New-VbsKey</a></li>
+  <li><a href="#fn-list">Get-VbsKey</a></li>
+  <li><a href="#fn-remove">Remove-VbsKey</a></li>
+  <li><a href="#fn-usable">Test-VbsKeyUsable</a></li>
+  <li><a href="#fn-selfsigned">New-VbsKeySelfSignedCertificate</a></li>
+  <li><a href="#fn-csr">New-VbsKeyCsr</a></li>
+  <li><a href="#fn-import">Import-VbsKeyPfx</a></li>
+  <li><a href="#fn-version">Get-VbsKeyVersion</a></li>
+  <li><a href="#fn-find">Find-CertKeyContainers</a></li>
+  <li><a href="#fn-attest">New-VbsKeyAttestation</a></li>
+  <li><a href="#fn-verify-attest">Test-VbsKeyAttestation</a></li>
+  <li><a href="#attest-workflows">Attestation workflows (CSR &amp; PFX)</a></li>
+  <li><a href="#notes">Notes, gotchas &amp; troubleshooting</a></li>
+</ol>
+</div>
+
+<h2 id="prereq">1. Prerequisites</h2>
+<div class="section">
+<ul>
+  <li><strong>VBS enabled and running</strong> (Windows hypervisor, 64-bit, IOMMU). Verify: <code>Get-CimInstance -Namespace root\Microsoft\Windows\DeviceGuard -ClassName Win32_DeviceGuard</code> &rarr; <code>VirtualizationBasedSecurityStatus = 2</code>.</li>
+  <li><strong>TPM 2.0</strong> (bare metal) or <strong>vTPM</strong> (VMs) &mdash; used to seal the key at rest.</li>
+  <li><strong>UEFI Secure Boot</strong> enabled.</li>
+  <li><strong>Windows build &#8805; 26052</strong> (Windows 11 / Server 2025). The feature debuted in that build.</li>
+  <li><strong>Elevation</strong> is required only for <em>machine-scope</em> keys (<code>-Machine</code> / <code>-StoreLocation LocalMachine</code>).</li>
+  <li><strong>PowerShell:</strong> runs on <strong>Windows PowerShell 5.1</strong> (built in to Windows) and <strong>PowerShell 7+</strong>.</li>
+</ul>
+<p><code>Test-VbsKeyReady</code> checks the VBS + build prerequisites for you.</p>
+</div>
+
+<h2 id="load">2. Loading the module</h2>
+<div class="section">
+<p>Dot-source the script to load its functions into your session:</p>
+<pre><code>. C:\Temp\MSHardwareKeysReport\VbsKeyProtection.ps1</code></pre>
+<p>The script defines a P/Invoke helper type once (guarded, so re-running in the same session is safe) and then exposes the ten functions below. No installation or admin rights are needed just to load it.</p>
+</div>
+
+<h2 id="quick">3. Quick start (full lifecycle)</h2>
+<div class="section">
+<pre><code>. C:\Temp\MSHardwareKeysReport\VbsKeyProtection.ps1
+
+<span class="cmt"># 1) Verify prerequisites</span>
+if (-not (Test-VbsKeyReady)) { throw "VBS not available on this machine." }
+
+<span class="cmt"># 2) Create a VBS-isolated key (-Name is optional; auto 'vbs-&lt;GUID&gt;' if omitted)</span>
+New-VbsKey -Name 'MyAppKey' -Algorithm RSA -Bits 2048
+
+<span class="cmt"># 3) List VBS keys (with any associated cert thumbprint)</span>
+Get-VbsKey | Format-Table -AutoSize
+
+<span class="cmt"># 4) Delete when done</span>
+Remove-VbsKey -Name 'MyAppKey'</code></pre>
+<p>Or go straight to a certificate (these create the key for you):</p>
+<pre><code><span class="cmt"># Self-signed cert on a new VBS key</span>
+New-VbsKeySelfSignedCertificate -Subject 'CN=app.contoso.com' -KeyName 'AppKey' -DnsName 'app.contoso.com'
+
+<span class="cmt"># CSR to submit to a CA</span>
+New-VbsKeyCsr -Subject 'CN=app.contoso.com,O=Contoso' -KeyName 'AppKey2' -OutputPath .\app.req
+
+<span class="cmt"># Import an existing PFX so its private key becomes VBS-isolated</span>
+Import-VbsKeyPfx -PfxPath .\legacy.pfx -Password (Read-Host -AsSecureString)</code></pre>
+</div>
+
+<!-- ================= FUNCTION REFERENCE ================= -->
+
+<h2 id="fn-ready">4. Test-VbsKeyReady</h2>
+<div class="section">
+<p>Verifies the machine can create VBS keys: VBS running (status 2) and OS build &#8805; 26052. Returns <code>$true</code>/<code>$false</code> and prints a status/warning.</p>
+<h4>Parameters</h4><p>None.</p>
+<h4>Example</h4>
+<pre><code>if (Test-VbsKeyReady) { "Ready" } else { "VBS not available" }</code></pre>
+</div>
+
+<h2 id="fn-new">5. New-VbsKey</h2>
+<div class="section">
+<p>Creates a VBS-isolated RSA or ECC key via CNG P/Invoke.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type / Values</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-Name</code></td><td>string</td><td>auto <code>vbs-&lt;GUID&gt;</code></td><td>CNG key container name. Optional &mdash; if omitted, a unique <code>vbs-&lt;GUID&gt;</code> name is generated.</td></tr>
+<tr><td><code>-Algorithm</code></td><td>RSA, ECDSA_P256/384/521, ECDH_P256/384/521</td><td>RSA</td><td>Key algorithm. ECDSA = signing, ECDH = key agreement.</td></tr>
+<tr><td><code>-Bits</code></td><td>int</td><td>2048</td><td>RSA key size. Valid range <strong>2048&ndash;16384</strong>; weaker sizes are rejected. <em>Ignored for ECC</em> (curve fixes the size).</td></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>Create in the machine key store (run elevated).</td></tr>
+<tr><td><code>-PreferFallback</code></td><td>switch</td><td>off</td><td>PREFER VBS; fall back to a software key if VBS is unavailable (instead of failing). <strong>The resulting key's isolation is verified</strong>: if it falls back to a non-VBS software key, a <em>warning</em> is emitted and the success message reflects the real status &mdash; it is never silently reported as VBS-backed.</td></tr>
+<tr><td><code>-Force</code></td><td>switch</td><td>off</td><td>Overwrite an existing key of the same name (delete-then-recreate) instead of failing with <code>NTE_EXISTS</code>.</td></tr>
+</table>
+<h4>Examples</h4>
+<pre><code>New-VbsKey -Name 'RsaKey'                       <span class="cmt"># RSA 2048 (require VBS)</span>
+New-VbsKey                                      <span class="cmt"># auto name vbs-&lt;GUID&gt;</span>
+New-VbsKey -Name 'EccKey' -Algorithm ECDSA_P384 <span class="cmt"># ECC P-384</span>
+New-VbsKey -Name 'RsaKey' -Force                <span class="cmt"># overwrite if it already exists</span>
+New-VbsKey -Name 'MachKey' -Machine             <span class="cmt"># machine store (elevated)</span></code></pre>
+</div>
+
+<h2 id="fn-list">6. Get-VbsKey</h2>
+<div class="section">
+<p>Lists VBS-isolated keys and, for each, the certificate <strong>thumbprint(s)</strong> that use it. The cert mapping is read from certificate <em>metadata</em> (no private-key access), so it never triggers UI prompts.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>List machine-store keys (run elevated). Otherwise lists user-store keys.</td></tr>
+</table>
+<h4>Output</h4><p>Objects with <code>Name</code>, <code>Algorithm</code>, <code>Scope</code>, <code>Thumbprint</code> (<code>(none)</code> if no cert uses the key).</p>
+<h4>Examples</h4>
+<pre><code>Get-VbsKey | Format-Table -AutoSize
+Get-VbsKey -Machine | Where-Object Thumbprint -ne '(none)'   <span class="cmt"># machine keys bound to a cert</span></code></pre>
+</div>
+
+<h2 id="fn-remove">7. Remove-VbsKey</h2>
+<div class="section">
+<p>Deletes a VBS key by <strong>container name</strong> (via the .NET <code>CngKey</code> API). Irreversible &mdash; <strong>prompts to confirm by default</strong> (high-impact <code>ShouldProcess</code>); honours <code>-WhatIf</code> and <code>-Confirm:$false</code>. After a successful delete it re-probes (<a href="#fn-usable">Test-VbsKeyUsable</a>) and <strong>warns</strong> only if the key unexpectedly still resolves (e.g. a second/residual key).</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-Name</code> (required)</td><td>string</td><td>&mdash;</td><td>CNG key <strong>container</strong> name to delete (e.g. <code>vbs-&lt;GUID&gt;</code>) &mdash; <strong>not</strong> a certificate thumbprint. Use <code>Get-VbsKey</code> to map a thumbprint&rarr;container.</td></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>Machine store (run elevated). Required for <code>LocalMachine</code> keys.</td></tr>
+<tr><td><code>-SkipCacheCheck</code></td><td>switch</td><td>off</td><td>Skip the post-delete crypto probe / cache warning.</td></tr>
+</table>
+<h4>Examples</h4>
+<pre><code>Remove-VbsKey -Name 'MyAppKey'
+Remove-VbsKey -Name 'MyAppKey' -WhatIf     <span class="cmt"># preview only</span>
+Remove-VbsKey -Name 'MachKey' -Machine     <span class="cmt"># elevated / LocalMachine</span></code></pre>
+<div class="section warn" style="margin-top:8px"><strong>&#9888;</strong> Irreversible. VBS keys are non-exportable &mdash; a deleted key cannot be recovered, and any certificate bound to it loses its private key. Rotate/re-issue first.</div>
+<div class="section note" style="margin-top:8px"><strong>Deletion is immediate.</strong> In testing (Windows build 26200, user <em>and</em> machine scope) a deleted key is instantly unobtainable via every path &mdash; <code>CngKey.Open</code>, <code>CryptAcquireCertificatePrivateKey</code> (the API <code>certutil</code> uses), and <code>certutil</code> itself all fail with <code>NTE_BAD_KEYSET (0x80090016)</code>. No cache, no reboot needed. As a safety net the cmdlet re-probes after deletion (<code>Test-VbsKeyUsable</code>) and warns only if the key <strong>unexpectedly</strong> still resolves &mdash; which would indicate the certificate has a <em>second / software</em> key, or that the container you deleted was not the cert's bound key. If you ever see <code>certutil</code> still report <code>Encryption test passed</code> after deleting a key (note the description flips from <code>Private key is a VSM key</code> to <code>NOT plain text exportable</code>), look for a second key; a reboot is a safe fallback.</div>
+</div>
+
+<h2 id="fn-usable">8. Test-VbsKeyUsable</h2>
+<div class="section">
+<p>Probes whether a VBS key container still <strong>resolves</strong> and can still <strong>perform crypto</strong> (a throwaway test signature that does not change persisted state). Use it to confirm a deletion truly took effect (deletion is immediate, so expect <code>Resolves=False</code> right after <code>Remove-VbsKey</code>), or to audit whether a key is currently usable.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-Name</code> (required)</td><td>string</td><td>&mdash;</td><td>CNG key container name (e.g. <code>vbs-&lt;GUID&gt;</code>).</td></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>Machine store (run elevated).</td></tr>
+</table>
+<h4>Returns</h4>
+<table>
+<tr><th>Property</th><th>Meaning</th></tr>
+<tr><td><code>Resolves</code></td><td><code>$true</code> if the container handle opens (whether persisted or cached).</td></tr>
+<tr><td><code>CryptoUsable</code></td><td><code>$true</code> if a test signature succeeded &mdash; the key can still do crypto.</td></tr>
+<tr><td><code>Detail</code></td><td>Human-readable outcome (algorithm used, or the failure reason).</td></tr>
+</table>
+<h4>Examples</h4>
+<pre><code><span class="cmt"># A live key: resolves and can sign</span>
+Test-VbsKeyUsable -Name 'vbs-1234abcd-...'
+<span class="cmt"># Resolves     : True</span>
+<span class="cmt"># CryptoUsable : True</span>
+<span class="cmt"># Detail       : RSA test signature succeeded (crypto works)</span>
+
+<span class="cmt"># After Remove-VbsKey: gone immediately (no reboot needed)</span>
+Test-VbsKeyUsable -Name 'vbs-1234abcd-...'
+<span class="cmt"># Resolves     : False</span>
+<span class="cmt"># CryptoUsable : False</span>
+<span class="cmt"># Detail       : does not resolve: Keyset does not exist</span></code></pre>
+<div class="section note" style="margin-top:8px"><strong>Read-only probe.</strong> It opens the key, signs a fixed test buffer, then disposes the handle &mdash; it does not create, modify, or persist anything.</div>
+</div>
+
+<h2 id="fn-selfsigned">9. New-VbsKeySelfSignedCertificate</h2>
+<div class="section">
+<p>Creates (or reuses) a VBS key and binds a <strong>self-signed certificate</strong> to it. Returns the certificate object.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type / Values</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-Subject</code> (required)</td><td>string</td><td>&mdash;</td><td>Certificate subject, e.g. <code>CN=app.contoso.com</code>.</td></tr>
+<tr><td><code>-KeyName</code></td><td>string</td><td>auto <code>vbs-&lt;GUID&gt;</code></td><td>CNG container name for the VBS key. Optional &mdash; auto-generated if omitted.</td></tr>
+<tr><td><code>-Algorithm</code></td><td>RSA, ECDSA_P256/384/521</td><td>RSA</td><td>Key algorithm (when creating the key).</td></tr>
+<tr><td><code>-Bits</code></td><td>int</td><td>2048</td><td>RSA size (valid <strong>2048&ndash;16384</strong>; weak sizes rejected); ignored for ECC.</td></tr>
+<tr><td><code>-HashAlgorithm</code></td><td>SHA256/384/512</td><td>SHA256</td><td>Signature hash.</td></tr>
+<tr><td><code>-DnsName</code></td><td>string[]</td><td>&mdash;</td><td>Subject Alternative Name(s).</td></tr>
+<tr><td><code>-StoreLocation</code></td><td>CurrentUser / LocalMachine</td><td>CurrentUser</td><td>Cert store (LocalMachine implies machine key + elevation).</td></tr>
+<tr><td><code>-UseExistingKey</code></td><td>switch</td><td>off</td><td>Reuse an existing VBS key instead of creating one. The container is <strong>verified to be VBS-isolated</strong> (<code>Virtual Iso=1</code>) before binding <em>and the bound key is re-verified after the cert is created</em> (fails closed on a mid-operation container swap) &mdash; a non-VBS software key is rejected.</td></tr>
+<tr><td><code>-Force</code></td><td>switch</td><td>off</td><td>Overwrite an existing key of the same name when creating (delete-then-recreate).</td></tr>
+<tr><td><code>-RemoveResidualKeyCopies</code></td><td>switch</td><td>off</td><td>After binding, delete any leftover <em>software</em> copy of the keypair (see <a href="#fn-find">Find-CertKeyContainers</a>). Without it, a warning is shown if extra copies exist.</td></tr>
+</table>
+<h4>Examples</h4>
+<pre><code><span class="cmt"># ECDSA P-256 self-signed cert with SANs (creates the key)</span>
+New-VbsKeySelfSignedCertificate -Subject 'CN=app.contoso.com' -KeyName 'AppKey' `
+    -Algorithm ECDSA_P256 -DnsName 'app.contoso.com','www.contoso.com'
+
+<span class="cmt"># Reuse an existing VBS key</span>
+New-VbsKeySelfSignedCertificate -Subject 'CN=app.contoso.com' -KeyName 'AppKey' -UseExistingKey</code></pre>
+</div>
+
+<h2 id="fn-csr">10. New-VbsKeyCsr</h2>
+<div class="section">
+<p>Creates (or reuses) a VBS key and generates a <strong>PKCS#10 CSR</strong> (signed inside VBS) to submit to a CA. Returns the <code>.req</code> file object, which also carries a <code>KeyName</code> property (the container name, including an auto-generated <code>vbs-&lt;GUID&gt;</code>) so you can attest the key with <a href="#fn-attest">New-VbsKeyAttestation</a>. The temporary INF is written with a random name and deleted automatically.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type / Values</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-Subject</code> (required)</td><td>string</td><td>&mdash;</td><td>Certificate subject, e.g. <code>CN=app.contoso.com,O=Contoso</code>.</td></tr>
+<tr><td><code>-KeyName</code></td><td>string</td><td>auto <code>vbs-&lt;GUID&gt;</code></td><td>CNG container name for the VBS key. Optional &mdash; auto-generated if omitted.</td></tr>
+<tr><td><code>-OutputPath</code> (required)</td><td>string</td><td>&mdash;</td><td>Path to write the <code>.req</code> (PKCS#10) file.</td></tr>
+<tr><td><code>-Algorithm</code></td><td>RSA, ECDSA_P256/384/521</td><td>RSA</td><td>Key algorithm (when creating the key).</td></tr>
+<tr><td><code>-Bits</code></td><td>int</td><td>2048</td><td>RSA size (valid <strong>2048&ndash;16384</strong>; weak sizes rejected); ignored for ECC.</td></tr>
+<tr><td><code>-HashAlgorithm</code></td><td>SHA256/384/512</td><td>SHA256</td><td>Signature hash.</td></tr>
+<tr><td><code>-DnsName</code></td><td>string[]</td><td>&mdash;</td><td>Subject Alternative Name(s).</td></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>Machine-store key (run elevated).</td></tr>
+<tr><td><code>-UseExistingKey</code></td><td>switch</td><td>off</td><td>Reuse an existing VBS key instead of creating one. The container is <strong>verified to be VBS-isolated</strong> (<code>Virtual Iso=1</code>) before signing <em>and re-verified after certreq signs</em> (fails closed on a mid-operation container swap) &mdash; a non-VBS software key is rejected.</td></tr>
+<tr><td><code>-Force</code></td><td>switch</td><td>off</td><td>Overwrite an existing key of the same name when creating (delete-then-recreate).</td></tr>
+</table>
+<h4>Example</h4>
+<pre><code>New-VbsKeyCsr -Subject 'CN=app.contoso.com,O=Contoso' -KeyName 'AppKey' `
+    -OutputPath .\app.req -Algorithm RSA -Bits 2048 -DnsName 'app.contoso.com'
+
+<span class="cmt"># 1) Submit app.req to your CA.</span>
+<span class="cmt"># 2) When the certificate is issued, bind it back to the SAME VBS key:</span>
+certreq -accept .\issued.cer</code></pre>
+<div class="section note" style="margin-top:8px"><strong>Security:</strong> the function rejects newline characters in <code>-Subject</code>/<code>-KeyName</code>/<code>-DnsName</code> (INF-injection guard) and always removes the temporary INF file.</div>
+</div>
+
+<!-- ================= IMPORT ================= -->
+
+<h2 id="fn-import">11. Import-VbsKeyPfx</h2>
+<div class="section">
+<p>Imports an existing <strong>PFX/PKCS#12</strong> file so its private key is re-created as a <strong>VBS-isolated</strong> key, then installs the certificate and binds it to that key. After import the key is <strong>non-exportable</strong> and device-bound &mdash; the original PFX can be destroyed. Supports <strong>RSA</strong> and <strong>ECDSA</strong> (P-256/384/521) keys.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type / Values</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-PfxPath</code> (required)</td><td>string</td><td>&mdash;</td><td>Path to the <code>.pfx</code> / <code>.p12</code> file.</td></tr>
+<tr><td><code>-Password</code> (required)</td><td>securestring</td><td>&mdash;</td><td>PFX password (pass a <code>[securestring]</code>, e.g. <code>Read-Host -AsSecureString</code>).</td></tr>
+<tr><td><code>-KeyName</code></td><td>string</td><td>auto <code>vbs-&lt;GUID&gt;</code></td><td>CNG container name for the imported VBS key. Optional &mdash; auto-generated if omitted.</td></tr>
+<tr><td><code>-StoreLocation</code></td><td>CurrentUser / LocalMachine</td><td>CurrentUser</td><td>Cert store to install into (LocalMachine implies machine key + elevation).</td></tr>
+<tr><td><code>-MinRsaKeySize</code></td><td>int</td><td>2048</td><td>Reject an imported RSA key below this size (ECDSA below 256-bit is always rejected) so a weak legacy key can't be migrated into VBS as an isolated-but-weak key. Lower it (e.g. <code>1024</code>) only for a deliberate legacy migration.</td></tr>
+<tr><td><code>-Force</code></td><td>switch</td><td>off</td><td>Overwrite an existing VBS key of the same name (delete-then-recreate).</td></tr>
+<tr><td><code>-DeleteSourcePfx</code></td><td>switch</td><td>off</td><td>After a successful import, <strong>best-effort</strong> overwrite &rarr; delete the source PFX. Prompts to confirm (high-impact <code>ShouldProcess</code>); respects <code>-WhatIf</code> and <code>-Confirm:$false</code>. Refuses reparse points, and <strong>binds the delete to the source file's identity</strong> (volume serial + file index) captured at import start &mdash; a path/junction swap during the operation is refused. <em>Single-pass overwrite is defense-in-depth only</em> &mdash; on SSD/copy-on-write/journaling volumes or where VSS snapshots exist, residual bytes may persist; rely on full-disk encryption (e.g. BitLocker).</td></tr>
+<tr><td><code>-RemoveResidualKeyCopies</code></td><td>switch</td><td>off</td><td>After import, delete any leftover <em>software</em> copy of the keypair (these defeat VBS non-exportability). Without it, a warning is shown if extra copies exist.</td></tr>
+</table>
+<h4>Output</h4><p>The installed <code>X509Certificate2</code> (with <code>HasPrivateKey = $true</code>) bound to the VBS-isolated key. It also carries a <code>KeyName</code> property &mdash; the container name (including an auto-generated <code>vbs-&lt;GUID&gt;</code>) &mdash; so you can attest the key with <a href="#fn-attest">New-VbsKeyAttestation</a> without re-deriving it.</p>
+<h4>Examples</h4>
+<pre><code><span class="cmt"># Import a PFX (prompt for password); key gets an auto vbs-&lt;GUID&gt; name</span>
+Import-VbsKeyPfx -PfxPath .\legacy.pfx -Password (Read-Host -AsSecureString)
+
+<span class="cmt"># Named key, into the machine store (run elevated)</span>
+$pw = Read-Host -AsSecureString
+Import-VbsKeyPfx -PfxPath .\server.pfx -Password $pw -KeyName 'WebTls' -StoreLocation LocalMachine
+
+<span class="cmt"># Re-import over an existing key of the same name</span>
+Import-VbsKeyPfx -PfxPath .\server.pfx -Password $pw -KeyName 'WebTls' -Force
+
+<span class="cmt"># Import, then securely shred the source PFX (prompts; add -Confirm:$false in automation)</span>
+Import-VbsKeyPfx -PfxPath .\server.pfx -Password $pw -DeleteSourcePfx</code></pre>
+<div class="section note" style="margin-top:8px"><strong>How it works:</strong> the private key is never exposed in the clear. The PFX is re-exported as an <strong>encrypted PKCS#8</strong> (under a random one-time password), and that encrypted blob is handed to <code>NCryptImportKey</code> with the virtual-isolation flag &mdash; Windows decrypts it <em>inside</em> the VBS secure world (VTL1). RSA and ECDSA are handled identically (the key type and usage are preserved), and the encrypted material is zeroed from memory after import. The PFX is loaded with <code>EphemeralKeySet</code> where the runtime supports it, so <strong>no transient exportable key container is written to disk</strong> (it falls back to an on-disk keyset only on Windows PowerShell 5.1 / older .NET Framework, which cannot re-export an ephemeral key). Because the key stays encrypted end-to-end, this works on both Windows PowerShell 5.1 and PowerShell 7+.</div>
+<div class="section warn" style="margin-top:8px"><strong>&#9888; Confirmation:</strong> <code>Import-VbsKeyPfx</code> is high-impact (<code>ShouldProcess</code>), so it <strong>prompts before importing</strong> and fully honors <code>-WhatIf</code> (a dry run makes no change &mdash; no key, no cert, no PFX load). Pass <code>-Confirm:$false</code> for unattended automation.</div>
+<div class="section warn" style="margin-top:8px"><strong>&#9888;</strong> Once imported, the key is non-exportable &mdash; you cannot get the PFX back out. Keep your original PFX backup in a secure location until you have validated the imported certificate, then use <code>-DeleteSourcePfx</code> (or shred it yourself) to remove the exportable copy.</div>
+</div>
+
+<!-- ================= VERSION ================= -->
+
+<h2 id="fn-version">12. Get-VbsKeyVersion</h2>
+<div class="section">
+<p>Returns the version of this VBS function library so scripts can check what they are running against.</p>
+<h4>Output</h4><p>A <code>PSCustomObject</code> with <code>Version</code> (a <code>[version]</code> object, so it compares correctly), <code>ReleaseDate</code>, and <code>Author</code>.</p>
+<h4>Examples</h4>
+<pre><code>Get-VbsKeyVersion
+<span class="cmt"># Version ReleaseDate Author</span>
+<span class="cmt"># ------- ----------- ------</span>
+<span class="cmt"># 1.0.0   Paulo da Silva</span>
+
+<span class="cmt"># Guard on a minimum version</span>
+if ((Get-VbsKeyVersion).Version -lt [version]'1.0.0') { throw 'Update VbsKeyProtection.ps1' }</code></pre>
+</div>
+
+<!-- ================= FIND ================= -->
+
+<h2 id="fn-find">13. Find-CertKeyContainers</h2>
+<div class="section">
+<p>Audits for <strong>all copies of a certificate's keypair</strong>. It enumerates the VBS KSP and returns every container whose public key matches the cert &mdash; VBS <em>and</em> plain software &mdash; so you can spot <strong>leftover exportable software keys</strong> that survive after you delete the VBS key. Supports <strong>RSA and ECDSA</strong> certificates (RSA matches on modulus, ECDSA on the public point Q).</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-Thumbprint</code> (required)</td><td>string</td><td>&mdash;</td><td>Certificate SHA1 thumbprint (in the <code>My</code> store). Must be exactly <strong>40 hex characters</strong> (validated) and is looked up with <code>-LiteralPath</code>, so wildcards are not expanded.</td></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>LocalMachine store/keys (run elevated).</td></tr>
+</table>
+<h4>Output</h4><p>One object per matching container: <code>Name</code>, <code>VBS</code> (bool), <code>Exportable</code> (bool), <code>ExportPolicy</code>, <code>Scope</code>, <code>UniqueName</code>, and <code>BlobPath</code> (the on-disk key file).</p>
+<h4>Examples</h4>
+<pre><code><span class="cmt"># List every container holding this cert's keypair</span>
+Find-CertKeyContainers -Thumbprint 8DBCB6... -Machine
+
+<span class="cmt"># Purge every non-VBS software copy (keep only the VBS key)</span>
+Find-CertKeyContainers -Thumbprint 8DBCB6... -Machine |
+    Where-Object { -not $_.VBS } |
+    ForEach-Object { Remove-VbsKey -Name $_.Name -Machine }</code></pre>
+<div class="section warn" style="margin-top:8px"><strong>&#9888; Why this matters (security).</strong> A certificate created with a software key first and later &ldquo;VBS-protected&rdquo; (re-key or <a href="#fn-import">Import-VbsKeyPfx</a>) keeps its original <strong>exportable software key</strong> on disk (machine keys live under <code>%ProgramData%\Microsoft\Crypto\Keys</code>, filename = the <em>Unique container name</em>). Deleting the VBS key does <em>not</em> remove it, and Windows &mdash; notably <code>certutil -repairstore</code> &mdash; will silently re-bind the cert to the surviving software key by public-key match. That defeats VBS's non-exportability. <code>New-VbsKeySelfSignedCertificate</code> and <code>Import-VbsKeyPfx</code> run this audit automatically and support <code>-RemoveResidualKeyCopies</code> to purge the software copies.</div>
+</div>
+
+<!-- ================= ATTESTATION ================= -->
+
+<h2 id="fn-attest">14. New-VbsKeyAttestation</h2>
+<div class="section warn"><strong>&#9888; Preview.</strong> VBS key attestation relies on VBS/CNG claim APIs (<code>NCryptCreateClaim</code> / <code>NCryptVerifyClaim</code> with the <code>NCRYPT_CLAIM_VBS_*</code> types) that Microsoft documents as <strong>prerelease &mdash; subject to change before general availability</strong>, and it requires very recent Windows builds. Treat <code>New-VbsKeyAttestation</code> / <code>Test-VbsKeyAttestation</code> / <code>Get-VbsPublicKeyBlob</code> as <strong>experimental</strong>; validate on your target build and avoid hard production dependencies until the APIs are finalized.</div>
+<div class="section">
+<p>Produces a <strong>VBS key-attestation claim</strong> &mdash; a secure-kernel-signed statement proving that an existing VBS key really is protected inside VBS (VTL1), was <strong>created in isolation</strong>, and is non-exportable. Hand the claim to a relying party (or CA) as cryptographic proof of the key's protection. Refuses keys that are not VBS-isolated.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-KeyName</code> (required)</td><td>string</td><td>&mdash;</td><td>Name of an existing VBS key to attest.</td></tr>
+<tr><td><code>-Nonce</code></td><td>byte[]</td><td>&mdash;</td><td>Optional relying-party challenge (1&ndash;1024 bytes), embedded in and signed by the claim to prevent replay. If specified it must be <strong>non-empty</strong> &mdash; passing an empty/null value errors (so a dropped challenge can't silently disable replay protection). Omit it entirely for a no-challenge claim.</td></tr>
+<tr><td><code>-OutputPath</code></td><td>string</td><td>&mdash;</td><td>Optional path to also write the raw (binary) claim for out-of-band verification. Honors <code>-WhatIf</code>/<code>-Confirm</code>.</td></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>Attest a machine-store key (run elevated).</td></tr>
+</table>
+<h4>Output</h4><p>A <code>PSCustomObject</code>: <code>KeyName</code>, <code>KeyAlgorithm</code> (<code>RSA</code>/<code>ECDSA</code>/<code>ECDH</code>), <code>ClaimType</code> (<code>VBS_ROOT</code>), <code>ClaimBytes</code>, <code>Nonce</code> (base64 or <code>$null</code>), <code>Claim</code> (base64), <code>ClaimRaw</code> (byte[]), <code>PublicKeyBlob</code> (base64 &mdash; hand this to a remote verifier), <code>PublicKeyBlobRaw</code> (byte[]), <code>OutputPath</code>.</p>
+<h4>Examples</h4>
+<pre><code><span class="cmt"># Attest a key with a relying-party challenge, save the claim to a file</span>
+$nonce = [byte[]](1..16)
+$att = New-VbsKeyAttestation -KeyName 'MyAppKey' -Nonce $nonce -OutputPath .\myappkey.claim
+$att.Claim           <span class="cmt"># base64 claim string to send to the verifier</span>
+$att.PublicKeyBlob   <span class="cmt"># base64 public key &mdash; send this too for OFF-BOX verification</span></code></pre>
+</div>
+
+<h2 id="fn-verify-attest">15. Test-VbsKeyAttestation</h2>
+<div class="section">
+<p>Verifies a claim produced by <a href="#fn-attest">New-VbsKeyAttestation</a>. It validates the secure-kernel signature and returns the <strong>trustlet details</strong>. Any tampering is detected (invalid signature) and, with <code>-ExpectedNonce</code>, the signed challenge is confirmed to match (replay protection). Verify a <strong>local</strong> key by name, or <strong>off-box</strong> (as a remote relying party) from just the subject's public key blob &mdash; no private key required. Read-only.</p>
+<h4>Parameters</h4>
+<table>
+<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-KeyName</code></td><td>string</td><td>&mdash;</td><td><strong>Local subject.</strong> Opens the key by container name on this machine.</td></tr>
+<tr><td><code>-PublicKeyBlob</code></td><td>byte[]</td><td>&mdash;</td><td><strong>Remote subject.</strong> The subject's BCRYPT public key blob (RSA/ECC).</td></tr>
+<tr><td><code>-PublicKeyBlobBase64</code></td><td>string</td><td>&mdash;</td><td>Same as <code>-PublicKeyBlob</code>, base64-encoded (as emitted by <code>New-VbsKeyAttestation.PublicKeyBlob</code>).</td></tr>
+<tr><td><code>-CertPath</code> / <code>-Certificate</code></td><td>string / X509Certificate2</td><td>&mdash;</td><td><strong>Remote subject.</strong> Extracts the public key from a <code>.cer</code> file or cert object (via <code>Get-VbsPublicKeyBlob</code>).</td></tr>
+<tr><td><code>-CsrPath</code></td><td>string</td><td>&mdash;</td><td><strong>Remote subject.</strong> Extracts the public key from a PKCS#10 <code>.req</code> (PS 7.3+).</td></tr>
+<tr><td><code>-ExpectedNonce</code></td><td>byte[]</td><td>&mdash;</td><td>Challenge to confirm; the embedded (signed) nonce must match or the result is <code>Valid = $false</code>. Required for <code>.Accepted</code> by default (see below).</td></tr>
+<tr><td><code>-AllowMissingChallenge</code></td><td>switch</td><td>off</td><td><strong>Relaxes</strong> the default policy: accept even if no fresh <code>-ExpectedNonce</code> was verified (replay risk).</td></tr>
+<tr><td><code>-AllowImportedKey</code></td><td>switch</td><td>off</td><td><strong>Relaxes</strong> the default policy: accept keys not born in VBS (<code>CreatedInIsolation=$false</code>, e.g. PFX imports).</td></tr>
+<tr><td><code>-AllowDebuggableTrustlet</code></td><td>switch</td><td>off</td><td><strong>Relaxes</strong> the default policy: accept a debuggable trustlet.</td></tr>
+<tr><td><code>-Machine</code></td><td>switch</td><td>off</td><td>Local <code>-KeyName</code> subject is in the machine store (run elevated).</td></tr>
+</table>
+<p>Choose <strong>exactly one</strong> subject (<code>-KeyName</code> / <code>-PublicKeyBlob</code> / <code>-PublicKeyBlobBase64</code> / <code>-CertPath</code> / <code>-Certificate</code> / <code>-CsrPath</code>) and one claim source (<code>-ClaimBase64</code> / <code>-Claim</code> / <code>-ClaimPath</code>).</p>
+<div class="section note" style="margin-top:8px"><strong>&#128272; <code>.Accepted</code> is secure-by-default.</strong> Unlike <code>.Valid</code> (raw signature + nonce validity), <code>.Accepted</code> is the policy decision a relying party should act on. By default it requires <em>all</em> of: a valid claim, a <strong>verified fresh challenge</strong> (<code>-ExpectedNonce</code> supplied and matched), <strong>born-in-VBS</strong> (<code>CreatedInIsolation</code>), and a <strong>non-debuggable</strong> trustlet. Each requirement can be individually relaxed with the corresponding <code>-Allow*</code> switch. A bare verify with no <code>-ExpectedNonce</code> yields <code>Valid=$true</code> but <code>Accepted=$false</code>.</div>
+<h4>Output</h4><p>A <code>PSCustomObject</code>: <code>Valid</code> (bool &mdash; signature + nonce), <code>Accepted</code> (bool &mdash; the secure-by-default policy decision), <code>SubjectSource</code> (which subject parameter was used), <code>Status</code> (hex status code), <code>Details</code> (<code>CreatedInIsolation</code>, <code>TrustletId</code>, <code>TrustletSecurityVersion</code>, <code>TrustletDebuggable</code>, <code>KeyFlags</code>), <code>EmbeddedNonce</code> (base64), <code>NonceMatch</code>.</p>
+<h4>Examples</h4>
+<pre><code><span class="cmt"># Local: verify a claim and confirm the challenge we issued</span>
+$r = Test-VbsKeyAttestation -KeyName 'MyAppKey' -ClaimPath .\myappkey.claim -ExpectedNonce $nonce
+$r.Valid                        <span class="cmt"># True</span>
+$r.Details.CreatedInIsolation   <span class="cmt"># True = key was generated inside VBS, never software</span>
+
+<span class="cmt"># Remote (relying party): verify off-box from just the claim + public key blob</span>
+$r = Test-VbsKeyAttestation -PublicKeyBlobBase64 $att.PublicKeyBlob `
+        -ClaimBase64 $att.Claim -ExpectedNonce $nonce
+$r.SubjectSource   <span class="cmt"># PublicKeyBlobBase64</span></code></pre>
+<div class="section note" style="margin-top:8px"><strong>Trust root.</strong> VBS-isolated keys are ultimately anchored in the <strong>TPM</strong>, so a valid claim ties the key to this device's hardware root of trust. <code>CreatedInIsolation = $true</code> and <code>TrustletDebuggable = $false</code> are the strong-assurance signals.</div>
+</div>
+
+<!-- ================= ATTESTATION WORKFLOWS ================= -->
+
+<h2 id="attest-workflows">16. Attestation workflows: CSR &amp; PFX</h2>
+<div class="section">
+<p>End-to-end recipes for proving to a relying party / CA that a certificate's key is VBS-isolated. The model is <strong>challenge&ndash;response</strong>: the <strong>verifier (RA/CA) issues a fresh random nonce</strong>, the <strong>holder (client)</strong> attests its key with that nonce, and the verifier checks the signed claim. Acceptance gates on <strong>all four</strong> of: <code>Valid</code>, <code>NonceMatch</code>, <code>Details.CreatedInIsolation</code>, and <code>-not Details.TrustletDebuggable</code>. <code>Valid = $true</code> alone is <em>not</em> enough &mdash; an imported key is also <code>Valid</code> (see workflow B).</p>
+
+<h4>RA helper: Get-VbsPublicKeyBlob</h4>
+<p>The verifier extracts the subject's public key from the artifact it trusts (the issued/target <code>.cer</code> or the CSR) &mdash; never from a blob the client sends alongside the claim. The module provides this as one call (RSA + ECDSA):</p>
+<pre><code><span class="cmt"># from a .cer file (PS 5.1 &amp; 7+), an X509Certificate2 object, or a .req CSR (PS 7.3+)</span>
+$pub = Get-VbsPublicKeyBlob -CertPath .\thecert.cer
+$pub = Get-VbsPublicKeyBlob -Certificate $cert
+$pub = Get-VbsPublicKeyBlob -CsrPath .\app.req</code></pre>
+<p><code>Test-VbsKeyAttestation</code> also accepts <code>-CertPath</code> / <code>-Certificate</code> / <code>-CsrPath</code> directly and returns a secure-by-default <code>.Accepted</code> decision, so the RA check is usually a single call &mdash; no need to call the helper explicitly.</p>
+
+<h3>A. Attest a key created via New-VbsKeyCsr (born-in-VBS &rarr; ISSUE)</h3>
+<pre><code><span class="cmt"># [RA] issue a fresh challenge (store it against the pending request)</span>
+$challenge = [byte[]](Get-Random -Count 32 -InputObject (0..255))
+
+<span class="cmt"># [CLIENT] create the VBS key + CSR, then attest that key with the RA's challenge</span>
+$csr = New-VbsKeyCsr -Subject 'CN=app.contoso.com' -OutputPath .\app.req
+$att = New-VbsKeyAttestation -KeyName $csr.KeyName -Nonce $challenge
+<span class="cmt"># send app.req + $att.Claim to the RA</span>
+
+<span class="cmt"># [RA] ONE call: verify against the CSR's own key + challenge. .Accepted is secure by</span>
+<span class="cmt"># default (fresh challenge + born-in-VBS + non-debuggable) -- no policy switches needed.</span>
+$r = Test-VbsKeyAttestation -CsrPath .\app.req -Claim $att.ClaimRaw -ExpectedNonce $challenge
+if ($r.Accepted) { certreq -submit .\app.req }   <span class="cmt"># Accepted = True -&gt; ISSUE</span></code></pre>
+
+<h3>B. Attest a key imported via Import-VbsKeyPfx (imported &rarr; REJECT)</h3>
+<p>An imported key <em>is</em> genuinely VBS-isolated (<code>Valid = True</code>), but the claim reports <code>CreatedInIsolation = False</code> because the private key existed as software before import. Because <code>.Accepted</code> requires born-in-VBS <strong>by default</strong>, the RA's <code>.Accepted</code> is <code>False</code> with no extra switches &mdash; this is how it <em>detects</em> a PFX-origin key. (Pass <code>-AllowImportedKey</code> only to deliberately accept it.)</p>
+<pre><code><span class="cmt"># [CLIENT] the key backing an installed cert (from Import-VbsKeyPfx)</span>
+$installed = Get-Item 'Cert:\CurrentUser\My\&lt;thumbprint&gt;'
+$priv    = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($installed)
+$keyName = $priv.Key.KeyName; $priv.Dispose()
+$att = New-VbsKeyAttestation -KeyName $keyName -Nonce $challenge
+
+<span class="cmt"># [RA] ONE call against the .cer (secure default)</span>
+$r = Test-VbsKeyAttestation -CertPath .\thecert.cer -Claim $att.ClaimRaw -ExpectedNonce $challenge
+$r.Valid      <span class="cmt"># True  (it IS VBS-isolated now)</span>
+$r.Accepted   <span class="cmt"># False (imported from PFX, not hardware-born) -&gt; REJECT</span></code></pre>
+
+<div class="section warn" style="margin-top:8px"><strong>&#9888; Verifier must bind to the request.</strong> Always derive the public key from the CSR/cert tied to the enrollment, not from a blob the client sends with the claim. Because a claim only verifies against its true subject key (swap-resistance), this ties <code>{request &harr; key &harr; claim &harr; challenge}</code> together and blocks a client from pairing someone else's valid claim with its own key.</div>
+
+<div class="section note" style="margin-top:8px"><strong>AD CS integration.</strong> A stock CA won't run this verification automatically &mdash; built-in AD CS key attestation validates <strong>TPM</strong> claims, not VBS. Use a <strong>custom CA policy module</strong> (extract the claim from a request attribute and verify at submission) or an <strong>RA-gated template</strong> (manager approval; an operator/script runs the four checks before approving).</div>
+</div>
+
+<!-- ================= NOTES ================= -->
+
+<h2 id="notes">17. Notes, gotchas &amp; troubleshooting</h2>
+<div class="section warn">
+<ul>
+  <li><strong>Non-exportable &amp; device-bound:</strong> VBS keys cannot be backed up or migrated. A lost/reimaged device destroys the key &mdash; plan rotation/re-issuance.</li>
+  <li><strong>Require vs. Prefer:</strong> by default keys REQUIRE VBS (fail if unavailable). Use <code>-PreferFallback</code> only if a software fallback is acceptable &mdash; the module verifies the created key's <code>Virtual Iso</code> status and <strong>warns</strong> if it fell back to a non-VBS software key, so a fallback is never silently treated as VBS-protected.</li>
+  <li><strong>RSA vs. ECC size:</strong> <code>-Bits</code> applies only to RSA; ECC size comes from the named curve (the module skips the Length property for ECC automatically). RSA <code>-Bits</code> is validated to <strong>2048&ndash;16384</strong> &mdash; requests below 2048 are rejected at parameter binding.</li>
+  <li><strong>Reusing a key requires VBS isolation:</strong> <code>-UseExistingKey</code> on <code>New-VbsKeySelfSignedCertificate</code> / <code>New-VbsKeyCsr</code> now verifies the named container is VBS-isolated (<code>Virtual Iso=1</code>) before binding. If you point it at a plain software key it throws, so a non-VBS key can never be silently presented as VBS-backed.</li>
+  <li><strong>Binding to a cert uses <code>-Container</code>:</strong> under the hood the self-signed path uses <code>New-SelfSignedCertificate -ExistingKey -Container</code> (there is no <code>-KeyName</code> parameter on that cmdlet).</li>
+  <li><strong>Duplicate key names:</strong> creating/importing a key whose name already exists fails with <code>NTE_EXISTS (0x8009000F)</code> and a friendly message. Pass <code>-Force</code> to overwrite (delete-then-recreate), or omit <code>-Name</code>/<code>-KeyName</code> to get a unique <code>vbs-&lt;GUID&gt;</code> name.</li>
+  <li><strong>RSA &amp; ECDSA imports:</strong> <code>Import-VbsKeyPfx</code> imports the key as an encrypted PKCS#8 that Windows decrypts inside VBS, so both RSA and ECDSA (P-256/384/521) keep their correct key type and usage (ECDSA stays a signing key).</li>
+  <li><strong>Cert deletion may remove the key:</strong> removing a certificate with <code>-DeleteKey</code> also deletes the bound VBS key, so a later <code>Remove-VbsKey</code> may report "Keyset does not exist" (harmless).</li>
+  <li><strong>certutil still passes after deleting a key?</strong> In testing, deletion is immediate at every layer (<code>CngKey.Open</code>, <code>CryptAcquireCertificatePrivateKey</code>, and <code>certutil</code> all return <code>NTE_BAD_KEYSET 0x80090016</code>). If <code>certutil</code> still shows <code>Encryption test passed</code> for a cert after you deleted its key, that cert most likely has a <strong>second / software key</strong> (note the description flips from <code>VSM key</code> to <code>NOT plain text exportable</code>), or the container you deleted was not the cert's bound key. Verify with <code>Test-VbsKeyUsable</code>; a reboot is a safe fallback.</li>
+  <li><strong>Leftover software key copies:</strong> re-keying or importing can leave OLD copies of a keypair in other containers (often <em>exportable software</em> keys) &mdash; and <code>certutil -repairstore</code> will re-bind the cert to one. Use <a href="#fn-find"><code>Find-CertKeyContainers</code></a> to list every copy for a cert and remove the non-VBS ones; <code>New-VbsKeySelfSignedCertificate</code> / <code>Import-VbsKeyPfx</code> audit this automatically (pass <code>-RemoveResidualKeyCopies</code> to purge).</li>
+  <li><strong>CSR pending request:</strong> <code>certreq -new</code> leaves a pending request in <code>Cert:\CurrentUser\REQUEST</code>; it is consumed by <code>certreq -accept</code> when the issued cert returns.</li>
+  <li><strong>Machine scope needs elevation:</strong> <code>-Machine</code> / <code>-StoreLocation LocalMachine</code> require an elevated PowerShell session.</li>
+</ul>
+</div>
+
+<div class="section accent">
+<strong>Verify a cert's key is VBS-isolated:</strong>
+<pre><code>$c = Get-Item Cert:\CurrentUser\My\&lt;thumbprint&gt;
+$rsa = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($c)
+$rsa.Key.GetProperty("Virtual Iso",[System.Security.Cryptography.CngPropertyOptions]::None).GetValue()[0]
+<span class="cmt"># 1 = VBS</span></code></pre>
+</div>
+
+</div>
+<script>
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = (t === 'light') ? '🌙 Dark mode' : '☀️ Light mode';
+    try { localStorage.setItem('report-theme', t); } catch (e) {}
+  }
+  function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    applyTheme(cur === 'light' ? 'dark' : 'light');
+  }
+  (function () {
+    var saved = 'dark';
+    try { saved = localStorage.getItem('report-theme') || 'dark'; } catch (e) {}
+    applyTheme(saved);
+  })();
+</script>
+</body>
+</html>

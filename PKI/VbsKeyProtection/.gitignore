@@ -1,0 +1,21 @@
+# Never commit key material or local crypto test artifacts
+*.pfx
+*.p12
+*.pem
+*.key
+*.req
+*.cer
+*.crt
+*.claim
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
+
+# OS / editor cruft
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vs/
+*.user
